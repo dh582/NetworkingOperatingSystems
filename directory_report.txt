@@ -1,0 +1,15 @@
+Directory Report
+================
+Directory: _Directory/subdir1/
+----------------
+inode/x-empty
+inode/x-empty
+Total space used: 0
+Shortest file name: file1.txt
+Longest file name: file2.txt
+Directory: _Directory/subdir2/
+----------------
+inode/x-empty
+Total space used: 0
+Shortest file name: file3.txt
+Longest file name: file3.txt
