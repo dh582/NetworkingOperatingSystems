@@ -4,9 +4,10 @@
 SCRIPT_PID=$$
 
 # Function to generate UUID
-root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#generate_uuid() {
-    local N=$1
-    local FILENAME="uuid_$N.txt"
+generate_uuid() { 
+  local N=$1
+       local TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    local FILENAME="uuid_${N}_${TIMESTAMP}.txt"
 
     if [ -f "$FILENAME" ]; then
         echo "Previous UUID exists: $(cat $FILENAME)"
@@ -18,7 +19,7 @@ root@LAPTOP-MCNSLFRA:/mnt/c/Temp/AssessmentNetworking#root@LAPTOP-MCNSLFRA:/mnt/
     fi
 }
 # Run a command in the background
-dony_command &
+sleep 10 &
 
 # Capture the PID of the command
 SUBCOMMAND_PID=$!
@@ -41,20 +42,39 @@ categorize_directory() {
         echo "Directory: $dir" >> "$REPORT_FILE"
         echo "----------------" >> "$REPORT_FILE"
 
+        # Initialize variables to track file types and their sizes
+        declare -A file_types
+        declare -A file_sizes
+        
+        # Iterate over files in the directory
         find "$dir" -type f | while read file; do
-            echo "$(file -b --mime-type "$file")" >> "$REPORT_FILE"
+            # Get file type
+            file_type=$(file -b --mime-type "$file")
+            
+            # Increment file type count
+            ((file_types[$file_type]++))
+            
+            # Add file size to the corresponding file type
+            file_sizes[$file_type]=$(($(stat -c %s "$file") + ${file_sizes[$file_type]:-0}))
         done
 
-        total_size=$(du -sh "$dir" | awk '{print $1}')
-        echo "Total space used: $total_size" >> "$REPORT_FILE"
+        # Output file type counts and collective sizes
+        for type in "${!file_types[@]}"; do
+            echo "File type: $type | Count: ${file_types[$type]} | Collective size: ${file_sizes[$type]} bytes" >> "$REPORT_FILE"
+        done
 
+        # Output total space used in the directory
+        echo "Total space used: $(du -sh "$dir" | awk '{print $1}')" >> "$REPORT_FILE"
+
+        # Output shortest and longest file names in the directory
         shortest_name=$(find "$dir" -type f -printf '%f\n' | awk '{ print length, $0 }' | sort -n | head -n 1 | cut -d ' ' -f 2)
         echo "Shortest file name: $shortest_name" >> "$REPORT_FILE"
-
+        
         longest_name=$(find "$dir" -type f -printf '%f\n' | awk '{ print length, $0 }' | sort -nr | head -n 1 | cut -d ' ' -f 2)
         echo "Longest file name: $longest_name" >> "$REPORT_FILE"
     done
 }
+
 
 # Function to log script commands and user logins
 log_activity() {
